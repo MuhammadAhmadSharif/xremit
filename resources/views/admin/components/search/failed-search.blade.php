@@ -1,0 +1,1 @@
+@include('admin.components.data-table.failed-table',compact('transactions'))

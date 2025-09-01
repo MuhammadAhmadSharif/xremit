@@ -1,0 +1,1 @@
+@include('admin.components.data-table.coupon-log-table',compact('transactions'))

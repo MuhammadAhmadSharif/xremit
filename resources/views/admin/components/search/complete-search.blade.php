@@ -1,0 +1,1 @@
+@include('admin.components.data-table.complete-table',compact('transactions'))

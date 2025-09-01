@@ -1,0 +1,1 @@
+@include('admin.components.data-table.delayed-table',compact('transactions'))
