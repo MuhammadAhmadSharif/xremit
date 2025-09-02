@@ -122,3 +122,41 @@ Route::controller(SendRemittanceController::class)->prefix("api-send-remittance"
     Route::post('sslcommerz/fail','sllCommerzFails')->name('ssl.fail');
     Route::post('sslcommerz/cancel','sllCommerzCancel')->name('ssl.cancel');    
 });
+
+// Installer Routes
+Route::prefix('project/install')->name('project.install.')->withoutMiddleware([\App\Http\Middleware\StartingPoint::class,\App\Http\Middleware\Admin\Localization::class])->group(function(){
+    Route::controller(\Project\Installer\Controllers\BaseController::class)->group(function(){
+        Route::get('welcome','welcomeView')->name('welcome');
+        Route::get('cancel','installationProcessCancel')->name('cancel');
+
+        // Requirements
+        Route::get('requirements','requirementsView')->name('requirements');
+
+        // purchase validation area
+        Route::get('validation/form','purchaseValidationForm')->name('validation.form');
+        Route::post('validation/form/submit','purchaseValidationFormSubmit')->name('validation.form.submit');
+
+        // Database Configuration
+        Route::get('database/config','databaseConfigView')->name('database.config');
+        Route::post('database/config/submit','databaseConfigSubmit')->name('database.config.submit');
+
+        // Migration
+        Route::get('migration/view','migrationView')->name('migration.view');
+        Route::post('migration/submit','migrationSubmit')->name('migration.submit');
+
+        // admin setup
+        Route::get('admin/account/setting','accountSetup')->name('admin.setup');
+        Route::post('admin/account/setting/submit','accountUpdate')->name('admin.setup.submit');
+
+        // Finish 
+        Route::get('finish','finish')->name('finish');
+    });
+});
+
+Route::get('project/install/reset',function(\Project\Installer\Helpers\DBHelper $db) {
+    $db->updateEnv([
+        "PRODUCT_KEY" => "",
+    ]);
+    sleep(1);
+    return redirect()->route('project.install.welcome');
+});

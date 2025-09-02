@@ -1,43 +1,59 @@
-# Use PHP 8.2 with Apache
-FROM php:8.2-apache
-
-# Install system dependencies and PHP extensions
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    libonig-dev \
-    libpng-dev \
-    && docker-php-ext-install pdo_mysql zip mbstring gd
-
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Use PHP 8.2 FPM as base image
+FROM php:8.2-fpm
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
-COPY . .
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    nginx \
+    supervisor \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy composer files
+COPY composer.json composer.lock ./
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set Apache document root to Laravel public folder
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+# Copy application files
+COPY . .
 
-# Update Apache configuration
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
-    && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Enable Apache mod_rewrite (needed for Laravel routes)
-RUN a2enmod rewrite
+# Copy nginx configuration
+COPY docker/nginx.conf /etc/nginx/sites-available/default
 
-# Cache Laravel config, routes, and views
-RUN php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Copy supervisor configuration
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create storage symlink
+RUN php artisan storage:link
+
+# Generate application key
+RUN php artisan key:generate
+
+# Optimize for production
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
 
 # Expose port 80
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

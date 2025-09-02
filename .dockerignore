@@ -1,8 +1,62 @@
-node_modules
-vendor
-storage/logs/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-.env
+# Git
 .git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Development files
+.env.example
+.env.backup
+.env.local
+.env.testing
+.env.staging
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+storage/logs/
+
+# Cache
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+
+# Dependencies
+node_modules/
+vendor/
+composer.lock
+
+# Testing
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Build artifacts
+public/build/
+public/mix-manifest.json
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Backup files
+*.sql
+*.backup

@@ -217,7 +217,7 @@ class DBHelper {
 
     public static function execute($cmd): string
     {
-        $process = Process::fromShellCommandline($cmd);
+        $process = Process::fromShellCommandline($cmd, base_path());
 
         $processOutput = '';
 
